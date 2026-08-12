@@ -2,13 +2,10 @@ FROM node:24.15.0-bookworm
 
 ARG OPENCODE_VERSION=latest
 
-# set working directory
 WORKDIR /app
 
-# check architecture
 RUN uname -m
 
-# install opencode globally
 RUN npm i -g "opencode-ai@${OPENCODE_VERSION}" && \
   installed_version_raw="$(opencode --version)" && \
   installed_version="${installed_version_raw#v}" && \
@@ -18,16 +15,15 @@ RUN npm i -g "opencode-ai@${OPENCODE_VERSION}" && \
     exit 1; \
   fi
 
-# non-root user (recommended)
 RUN adduser --disabled-password opencode
 
-# create necessary directories and set permissions
 RUN mkdir -p /home/opencode/.local/share/opencode/ && \
   mkdir -p /home/opencode/.local/state/opencode && \
   mkdir -p /home/opencode/.config/opencode/ && \
   chown -R opencode:opencode /home/opencode
 
-# switch to non-root user
-USER opencode
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# docker buildx build --platform linux/amd64,linux/arm64 -t ghcr.io/pilinux/opencode:0.0.1 --output type=docker .
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["opencode", "serve", "--hostname", "0.0.0.0", "--port", "4096"]

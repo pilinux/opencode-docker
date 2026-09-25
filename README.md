@@ -28,8 +28,36 @@ This will start the OpenCode web interface on `http://localhost:4096`.
 ### Environment Variables
 
 - `TZ` - Timezone setting
+- `PUID` - User ID the OpenCode server runs as (default: `1000`)
+- `PGID` - Group ID the OpenCode server runs as (default: `1000`)
 - `OPENCODE_SERVER_USERNAME` - Server username
 - `OPENCODE_SERVER_PASSWORD` - Server password
+
+### User and Group IDs (PUID/PGID)
+
+The container starts as root, remaps the internal `opencode` user to `PUID`/`PGID`,
+fixes the ownership of the mounted data directories if needed, and then drops privileges
+before starting OpenCode. This keeps bind-mounted host directories (e.g. `./data`) writable
+regardless of which user owns them on the host.
+
+Set `PUID`/`PGID` in `.env` (see `.env.sample`) to the IDs of the host user that should own the data.
+You can look them up with:
+
+```bash
+id -u  # PUID
+id -g  # PGID
+```
+
+Notes:
+
+- `PUID`/`PGID` must be numeric and must not be `0`; OpenCode is never run as root.
+- Ownership is only changed when something differs, so restarts stay fast.
+- Images before this change ran as UID/GID `1001`. On the first start with the default
+  `PUID`/`PGID`, existing files in `./data` are re-owned to `1000:1000`.
+  Set `PUID=1001` and `PGID=1001` to keep the previous ownership.
+- For hardened setups (`read_only: true`, `cap_drop: [ALL]`) the root remapping step cannot run.
+  Use `user: "<uid>:<gid>"` instead of `PUID`/`PGID`, and make sure the mounted directories
+  are already owned by that user.
 
 ### Volumes
 

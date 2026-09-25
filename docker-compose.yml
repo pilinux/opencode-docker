@@ -5,7 +5,7 @@ services:
     container_name: opencode
 
     # listen on all interfaces INSIDE the container
-    command: opencode serve --hostname 0.0.0.0 --port 4096
+    # command: opencode serve --hostname 0.0.0.0 --port 4096
 
     ports:
       - "172.17.0.1:4096:4096"
@@ -17,6 +17,9 @@ services:
 
     environment:
       - TZ=${TZ}
+      # host UID/GID that should own ./data (see `id -u` / `id -g`)
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
       - OPENCODE_SERVER_USERNAME=${OPENCODE_SERVER_USERNAME}
       - OPENCODE_SERVER_PASSWORD=${OPENCODE_SERVER_PASSWORD}
 
